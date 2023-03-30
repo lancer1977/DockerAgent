@@ -50,11 +50,12 @@ export VSO_AGENT_IGNORE=AZP_TOKEN,AZP_TOKEN_FILE
 
 print_header "1. Determining matching Azure Pipelines agent..."
 AZP_MERGED_URL="$AZP_URL/_apis/distributedtask/packages/agent?platform=$TARGETARCH&top=1"
-echo 52 "$AZP_AGENT_PACKAGES"
+echo 52 "AZP_URL - $AZP_URL"
+ echo 52 "AZP_MERGED_URL - $AZP_MERGED_URL"
 AZP_AGENT_PACKAGES=$(curl -LsS \
     -u user:$(cat "$AZP_TOKEN_FILE") \
     -H 'Accept:application/json;' \
-    $AZP_MERGED_URL)
+    "$AZP_MERGED_URL")
 echo 57 "$AZP_AGENT_PACKAGES"
 AZP_AGENT_PACKAGE_LATEST_URL=$(echo "$AZP_AGENT_PACKAGES" | jq -r '.value[0].downloadUrl')
 echo "$AZP_AGENT_PACKAGE_LATEST_URL"
@@ -66,7 +67,7 @@ fi
 echo 65
 print_header "2. Downloading and extracting Azure Pipelines agent..."
 
-curl -LsS $AZP_AGENT_PACKAGE_LATEST_URL | tar -xz & wait $!
+curl -LsS "$AZP_AGENT_PACKAGE_LATEST_URL" | tar -xz & wait $!
 echo 68
 source ./env.sh
 
