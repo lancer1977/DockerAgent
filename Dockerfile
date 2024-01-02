@@ -54,7 +54,7 @@ RUN apt-get install -y -qq --no-install-recommends \
 #RUN add-apt-repository ppa:webupd8team/java
 #RUN apt-get update
 RUN apt-get install -y -qq --no-install-recommends \
-    openjdk-8-jdk
+    openjdk-11-jdk
 
 #Docker
 RUN mkdir -p /etc/apt/keyrings
