@@ -28,7 +28,7 @@ RUN dpkg -i packages-microsoft-prod.deb
 # Clean up
 RUN rm packages-microsoft-prod.deb
 # Update packages
-RUN sudo apt update
+RUN apt update
 
 
 #RUN curl https://download.visualstudio.microsoft.com/download/pr/9144f37e-b370-41ee-a86f-2d2a69251652/bc1d544112ec134184a5aec7f7a1eaf9/dotnet-sdk-8.0.100-rc.2.23502.2-linux-x64.tar.gz -o dotnet-sdk-8.tar.gz
