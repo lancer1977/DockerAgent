@@ -51,11 +51,8 @@ export VSO_AGENT_IGNORE=AZP_TOKEN,AZP_TOKEN_FILE
 print_header "1. Determining matching Azure Pipelines agent..."
 AZP_MERGED_URL="$AZP_URL/_apis/distributedtask/packages/agent?platform=$TARGETARCH&top=1"
 echo 52 "AZP_URL - $AZP_URL"
- echo 52 "AZP_MERGED_URL - $AZP_MERGED_URL"
-AZP_AGENT_PACKAGES=$(curl -LsS \
-    -u user:$(cat "$AZP_TOKEN_FILE") \
-    -H 'Accept:application/json;' \
-    "$AZP_MERGED_URL")
+echo 52 "AZP_MERGED_URL - $AZP_MERGED_URL"
+AZP_AGENT_PACKAGES=$(curl -LsS -u user:$(cat "$AZP_TOKEN_FILE") -H 'Accept:application/json;' "$AZP_MERGED_URL")
 echo 57 "$AZP_AGENT_PACKAGES"
 AZP_AGENT_PACKAGE_LATEST_URL=$(echo "$AZP_AGENT_PACKAGES" | jq -r '.value[0].downloadUrl')
 echo "$AZP_AGENT_PACKAGE_LATEST_URL"
@@ -84,6 +81,8 @@ print_header "3. Configuring Azure Pipelines agent..."
   --acceptTeeEula & wait $!
 
 print_header "4. Running Azure Pipelines agent..."
+
+dotnet nuget add source $NUGET_SOURCE -n dev -u dev -p $(cat "$AZP_TOKEN_FILE") --store-password-in-clear-text
 
 trap 'cleanup; exit 0' EXIT
 trap 'cleanup; exit 130' INT
