@@ -66,7 +66,7 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
     docker-ce-cli \
     containerd.io \
     docker-compose-plugin
-
+RUN apt-get install -y -qq --no-install-recommends nuget
 
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
 
