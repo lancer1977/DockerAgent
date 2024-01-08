@@ -68,8 +68,12 @@ curl -LsS "$AZP_AGENT_PACKAGE_LATEST_URL" | tar -xz & wait $!
 
 source ./env.sh
 
-print_header "3. Configuring Azure Pipelines agent..."
 
+
+dotnet nuget add source $NUGET_SOURCE -n dev -u dev -p $(cat "$AZP_TOKEN_FILE") --store-password-in-clear-text || true
+nuget sources add -Source $NUGET_SOURCE -Name dev -UserName dev -Password $(cat "$AZP_TOKEN_FILE") || true
+docker login -u $DOCKER_USERNAME -p "$DOCKER_PAT" || true
+print_header "3. Configuring Azure Pipelines agent..."
 ./config.sh --unattended \
   --agent "${AZP_AGENT_NAME:-$(hostname)}" \
   --url "$AZP_URL" \
@@ -82,11 +86,9 @@ print_header "3. Configuring Azure Pipelines agent..."
 
 print_header "4. Running Azure Pipelines agent..."
 
-dotnet nuget add source $NUGET_SOURCE -n dev -u dev -p $(cat "$AZP_TOKEN_FILE") --store-password-in-clear-text
-nuget sources add -Source $NUGET_SOURCE -Name dev -UserName dev -Password $(cat "$AZP_TOKEN_FILE")
-docker login -u $DOCKER_USERNAME -p "$DOCKER_PAT"
+
+
+sleep infinity
 trap 'cleanup; exit 0' EXIT
 trap 'cleanup; exit 130' INT
 trap 'cleanup; exit 143' TERM
-
-sleep infinity
