@@ -1,6 +1,31 @@
 #!/bin/bash
 set -e
 
+cleanup() {
+  if [ -e config.sh ]; then
+    print_header "Cleanup. Removing Azure Pipelines agent..."
+
+    # If the agent has some running jobs, the configuration removal process will fail.
+    # So, give it some time to finish the job.
+    while true; do
+      ./config.sh remove --unattended --auth PAT --token $(cat "$AZP_TOKEN_FILE") && break
+
+      echo "Retrying in 30 seconds..."
+      sleep 30
+    done
+  fi
+}
+
+print_header() {
+  lightcyan='\033[1;36m'
+  nocolor='\033[0m'
+  echo -e "${lightcyan}$1${nocolor}"
+}
+
+trap 'cleanup; exit 0' EXIT
+trap 'cleanup; exit 130' INT
+trap 'cleanup; exit 143' TERM
+
 if [ -z "$AZP_URL" ]; then
   echo 1>&2 "error: missing AZP_URL environment variable"
   exit 1
@@ -24,36 +49,14 @@ fi
 
 export AGENT_ALLOW_RUNASROOT="1"
 
-cleanup() {
-  if [ -e config.sh ]; then
-    print_header "Cleanup. Removing Azure Pipelines agent..."
 
-    # If the agent has some running jobs, the configuration removal process will fail.
-    # So, give it some time to finish the job.
-    while true; do
-      ./config.sh remove --unattended --auth PAT --token $(cat "$AZP_TOKEN_FILE") && break
-
-      echo "Retrying in 30 seconds..."
-      sleep 30
-    done
-  fi
-}
-
-print_header() {
-  lightcyan='\033[1;36m'
-  nocolor='\033[0m'
-  echo -e "${lightcyan}$1${nocolor}"
-}
 
 # Let the agent ignore the token env variables
 export VSO_AGENT_IGNORE=AZP_TOKEN,AZP_TOKEN_FILE
 
 print_header "1. Determining matching Azure Pipelines agent..."
 AZP_MERGED_URL="$AZP_URL/_apis/distributedtask/packages/agent?platform=$TARGETARCH&top=1"
-echo 52 "AZP_URL - $AZP_URL"
-echo 52 "AZP_MERGED_URL - $AZP_MERGED_URL"
 AZP_AGENT_PACKAGES=$(curl -LsS -u user:$(cat "$AZP_TOKEN_FILE") -H 'Accept:application/json;' "$AZP_MERGED_URL")
-echo 57 "$AZP_AGENT_PACKAGES"
 AZP_AGENT_PACKAGE_LATEST_URL=$(echo "$AZP_AGENT_PACKAGES" | jq -r '.value[0].downloadUrl')
 echo "$AZP_AGENT_PACKAGE_LATEST_URL"
 if [ -z "$AZP_AGENT_PACKAGE_LATEST_URL" -o "$AZP_AGENT_PACKAGE_LATEST_URL" == "null" ]; then
@@ -65,14 +68,15 @@ fi
 print_header "2. Downloading and extracting Azure Pipelines agent..."
 
 curl -LsS "$AZP_AGENT_PACKAGE_LATEST_URL" | tar -xz & wait $!
-
 source ./env.sh
 
-
-
+print "2.1. Adding dev nuget source..."
 dotnet nuget add source $NUGET_SOURCE -n dev -u dev -p $(cat "$AZP_TOKEN_FILE") --store-password-in-clear-text || true
 nuget sources add -Source $NUGET_SOURCE -Name dev -UserName dev -Password $(cat "$AZP_TOKEN_FILE") || true
+
+print_header "2.2. Adding docker support..."
 docker login -u $DOCKER_USERNAME -p "$DOCKER_PAT" || true
+
 print_header "3. Configuring Azure Pipelines agent..."
 ./config.sh --unattended \
   --agent "${AZP_AGENT_NAME:-$(hostname)}" \
@@ -84,11 +88,8 @@ print_header "3. Configuring Azure Pipelines agent..."
   --replace \
   --acceptTeeEula & wait $!
 
-print_header "4. Running Azure Pipelines agent..."
+print_header "4. Running Azure Pipelines agent... YOU SHOULD NOT READ THIS!!!!!!!"
 
 
 
 sleep infinity
-trap 'cleanup; exit 0' EXIT
-trap 'cleanup; exit 130' INT
-trap 'cleanup; exit 143' TERM
