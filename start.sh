@@ -61,11 +61,11 @@ if [ -z "$AZP_AGENT_PACKAGE_LATEST_URL" -o "$AZP_AGENT_PACKAGE_LATEST_URL" == "n
   echo 1>&2 "check that account '$AZP_URL' is correct and the token is valid for that account"
   exit 1
 fi
-echo 65
+
 print_header "2. Downloading and extracting Azure Pipelines agent..."
 
 curl -LsS "$AZP_AGENT_PACKAGE_LATEST_URL" | tar -xz & wait $!
-echo 68
+
 source ./env.sh
 
 print_header "3. Configuring Azure Pipelines agent..."
@@ -89,8 +89,4 @@ trap 'cleanup; exit 0' EXIT
 trap 'cleanup; exit 130' INT
 trap 'cleanup; exit 143' TERM
 
-chmod +x ./run-docker.sh
-
-# To be aware of TERM and INT signals call run.sh
-# Running it with the --once flag at the end will shut down the agent after the build is executed
-./run-docker.sh "$@" & wait $!
+sleep infinity
