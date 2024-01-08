@@ -84,7 +84,7 @@ print_header "4. Running Azure Pipelines agent..."
 
 dotnet nuget add source $NUGET_SOURCE -n dev -u dev -p $(cat "$AZP_TOKEN_FILE") --store-password-in-clear-text
 nuget sources add -Source $NUGET_SOURCE -Name dev -UserName dev -Password $(cat "$AZP_TOKEN_FILE")
-docker login -u $DOCKER_USERNAME -p $(cat "$DOCKER_PAT") $DOCKER_REGISTRY
+docker login -u $DOCKER_USERNAME -p "$DOCKER_PAT"
 trap 'cleanup; exit 0' EXIT
 trap 'cleanup; exit 130' INT
 trap 'cleanup; exit 143' TERM
