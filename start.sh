@@ -89,7 +89,7 @@ print_header "3. Configuring Azure Pipelines agent..."
   --acceptTeeEula & wait $!
 
 print_header "4. Running Azure Pipelines agent... YOU SHOULD NOT READ THIS!!!!!!!"
-
+./run.sh & wait $!
 
 
 sleep infinity
