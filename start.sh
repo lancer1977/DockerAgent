@@ -68,8 +68,8 @@ curl -LsS "$AZP_AGENT_PACKAGE_LATEST_URL" | tar -xz & wait $!
 source ./env.sh
 
 print_header "2.1. Adding dev nuget source..."
-dotnet nuget add source $NUGET_SOURCE -n Polyhydra -u dev -p $(cat "$AZP_TOKEN_FILE") --store-password-in-clear-text || true
-nuget sources add -Source $NUGET_SOURCE -Name Polyhydra -UserName dev -Password $(cat "$AZP_TOKEN_FILE") || true
+dotnet nuget add source $NUGET_SOURCE -n $NUGET_NAME -u dev -p $(cat "$AZP_TOKEN_FILE") --store-password-in-clear-text || true
+nuget sources add -Source $NUGET_SOURCE -Name $NUGET_NAME -UserName dev -Password $(cat "$AZP_TOKEN_FILE") || true
 
 print_header "2.2. Adding docker support..."
 docker login -u $DOCKER_USERNAME -p "$DOCKER_PAT" || true
