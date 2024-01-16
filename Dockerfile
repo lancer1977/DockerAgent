@@ -31,12 +31,6 @@ RUN rm packages-microsoft-prod.deb
 RUN apt update
 
 
-#RUN curl https://download.visualstudio.microsoft.com/download/pr/9144f37e-b370-41ee-a86f-2d2a69251652/bc1d544112ec134184a5aec7f7a1eaf9/dotnet-sdk-8.0.100-rc.2.23502.2-linux-x64.tar.gz -o dotnet-sdk-8.tar.gz
-#RUN mkdir -p /usr/share/dotnet
-#RUN tar -zxf dotnet-sdk-8.tar.gz -C /usr/share/dotnet
-#RUN rm dotnet-sdk-8.tar.gz
-#RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
-
 
 #Mono / DotNet
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
@@ -66,7 +60,9 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
     docker-ce-cli \
     containerd.io \
     docker-compose-plugin
-RUN apt-get install -y -qq --no-install-recommends nuget
+RUN apt-get install -y -qq --no-install-recommends \
+    nuget \
+    doxygen
 
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
 
