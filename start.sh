@@ -16,7 +16,7 @@ cleanup() {
   fi
 }
 # Run external setup scripts.
-./runscripts.sh
+./runscripts.sh | true
 print_header() {
   lightcyan='\033[1;36m'
   nocolor='\033[0m'

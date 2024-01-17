@@ -68,7 +68,8 @@ RUN apt-get install -y -qq --no-install-recommends \
 
 WORKDIR /azp
 
-COPY ./start.sh .
-RUN chmod +x start.sh
+COPY ./*.sh .
+
+RUN chmod +x *.sh
 
 ENTRYPOINT [ "./start.sh" ]
