@@ -42,7 +42,8 @@ RUN apt-get install -y -qq --no-install-recommends \
     mono-devel \
     dotnet-sdk-6.0 \
     dotnet-sdk-7.0 \
-    dotnet-sdk-8.0
+    dotnet-sdk-8.0 \
+    dotnet-sdk-9.0 
 
 #JAVA
 #RUN add-apt-repository ppa:webupd8team/java
