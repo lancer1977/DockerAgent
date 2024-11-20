@@ -51,6 +51,8 @@ RUN apt-get install -y -qq --no-install-recommends \
 RUN apt-get install -y -qq --no-install-recommends \
     openjdk-11-jdk
 
+
+
 #Docker
 RUN mkdir -p /etc/apt/keyrings
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -64,6 +66,18 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
 RUN apt-get install -y -qq --no-install-recommends \
     nuget \
     doxygen
+
+#ANDROID
+RUN curl  https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o commandlinetools-linux.zip
+RUN mkdir -p ~/android-sdk
+RUN unzip commandlinetools-linux.zip -d ~/android-sdk
+RUN ~/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+RUN echo 'export ANDROID_HOME=~/android-sdk' >> ~/.bashrc
+RUN echo 'export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/bin' >> ~/.bashrc
+RUN source ~/.bashrc
+RUN git clone https://github.com/xamarin/xamarin-android.git
+RUN cd xamarin-android
+RUN ./build.sh
 
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
 
