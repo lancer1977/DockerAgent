@@ -63,15 +63,17 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
     docker-ce-cli \
     containerd.io \
     docker-compose-plugin
+
 RUN apt-get install -y -qq --no-install-recommends \
     nuget \
+    unzip \
     doxygen
 
 #ANDROID
 RUN curl  https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o commandlinetools-linux.zip
 RUN mkdir -p ~/android-sdk
 RUN unzip commandlinetools-linux.zip -d ~/android-sdk
-RUN ~/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+RUN ~/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 RUN echo 'export ANDROID_HOME=~/android-sdk' >> ~/.bashrc
 RUN echo 'export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/bin' >> ~/.bashrc
 RUN source ~/.bashrc
