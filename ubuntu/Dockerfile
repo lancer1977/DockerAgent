@@ -51,7 +51,8 @@ RUN apt-get install -y -qq --no-install-recommends \
 RUN apt-get install -y -qq --no-install-recommends \
     openjdk-11-jdk
 
-
+#DocFX
+RUN dotnet tool install -g docfx
 
 #Docker
 RUN mkdir -p /etc/apt/keyrings
