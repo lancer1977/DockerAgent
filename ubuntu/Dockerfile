@@ -68,9 +68,9 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
 RUN apt-get install -y -qq --no-install-recommends \
     nuget \
     unzip \
+    zip \
     doxygen
-
-
+RUN apt-get install -y -qq --no-install-recommends zip
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
 
 WORKDIR /azp
