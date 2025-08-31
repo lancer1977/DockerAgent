@@ -71,6 +71,8 @@ RUN apt-get install -y -qq --no-install-recommends \
     zip \
     doxygen
 RUN apt-get install -y -qq --no-install-recommends zip
+RUN dotnet tool update -g docfx
+
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
 
 WORKDIR /azp
