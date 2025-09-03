@@ -69,7 +69,9 @@ RUN apt-get install -y -qq --no-install-recommends \
     nuget \
     unzip \
     zip \
-    doxygen
+    doxygen \
+    rsync \
+    openssh-client
 RUN apt-get install -y -qq --no-install-recommends zip
 RUN dotnet tool update -g docfx
 
