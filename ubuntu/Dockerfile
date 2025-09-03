@@ -74,7 +74,7 @@ RUN apt-get install -y -qq --no-install-recommends \
     openssh-client
 RUN apt-get install -y -qq --no-install-recommends zip
 RUN dotnet tool update -g docfx
-
+ENV PATH="${PATH}:/root/.dotnet/tools"
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
 
 WORKDIR /azp
