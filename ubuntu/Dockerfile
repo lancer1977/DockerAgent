@@ -46,13 +46,8 @@ RUN apt-get install -y -qq --no-install-recommends \
     dotnet-sdk-9.0 
 
 #JAVA
-#RUN add-apt-repository ppa:webupd8team/java
-#RUN apt-get update
 RUN apt-get install -y -qq --no-install-recommends \
     openjdk-11-jdk
-
-#DocFX
-RUN dotnet tool install -g docfx
 
 #Docker
 RUN mkdir -p /etc/apt/keyrings
@@ -65,15 +60,21 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
     containerd.io \
     docker-compose-plugin
 
+#Install NODE SOURCE
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+
+#Tools
 RUN apt-get install -y -qq --no-install-recommends \
     nuget \
     unzip \
     zip \
     doxygen \
     rsync \
-    openssh-client
-RUN apt-get install -y -qq --no-install-recommends zip
-RUN dotnet tool update -g docfx
+    openssh-client \
+    nodejs
+
+#DocFX
+RUN dotnet tool install -g docfx
 ENV PATH="${PATH}:/root/.dotnet/tools"
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
 
