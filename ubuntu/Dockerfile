@@ -71,13 +71,14 @@ RUN apt-get install -y -qq --no-install-recommends \
     doxygen \
     rsync \
     openssh-client \
-    nodejs
+    nodejs \ 
+    python3-pip
 
 #DocFX
 RUN dotnet tool install -g docfx
 ENV PATH="${PATH}:/root/.dotnet/tools"
 #RUN groupadd docker && sudo usermod -aG docker USERNAME
-
+ENV pip install mkdocs mkdocs-material
 WORKDIR /azp
 
 COPY ./*.sh .
