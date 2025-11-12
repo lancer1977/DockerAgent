@@ -1,0 +1,25 @@
+{
+  "name": "Build Container",
+  "build": {
+    "dockerfile": "docker/build/Dockerfile",
+    "context": "..",
+    "args": {
+      "UBUNTU_VERSION": "24.04"
+    }
+  },
+  "remoteUser": "builder",
+  "features": {},
+  "postCreateCommand": "bash -lc 'echo Ready'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-azuretools.vscode-docker",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ]
+}

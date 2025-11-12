@@ -1,0 +1,43 @@
+# Example: Use your build container in Azure DevOps
+trigger:
+  branches:
+    include: [ main ]
+
+pool:
+  vmImage: 'ubuntu-24.04'
+
+resources:
+  containers:
+  - container: buildimg
+    image: myregistry.azurecr.io/build-images/asdf-ubuntu:latest
+    # credentials if needed
+    # endpoint: MyACRServiceConnection
+
+variables:
+- name: BuildConfiguration
+  value: Release
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildInContainer
+    container: buildimg
+    steps:
+    - checkout: self
+    - script: |
+        echo "Node: $(node -v)"
+        echo "Dotnet: $(dotnet --version)"
+        dotnet --info
+        corepack enable
+        pnpm -v || true
+      displayName: "Verify toolchain"
+    - script: |
+        dotnet restore
+        dotnet build -c $(BuildConfiguration)
+      displayName: "Build .NET"
+    - script: |
+        if [ -f package.json ]; then
+          pnpm install || npm ci
+          npm run build || true
+        fi
+      displayName: "Build Node (if present)"
