@@ -1,89 +1,97 @@
-FROM ubuntu:22.04
-RUN DEBIAN_FRONTEND=noninteractive apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+# .NET 10 SDK official image (Debian-based)
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
-    apt-transport-https \
-    apt-utils \
-    ca-certificates \
-    curl \
-    git \
-    iputils-ping \
-    jq \
-    lsb-release \
-    software-properties-common\
-    wget
+ENV DEBIAN_FRONTEND=noninteractive \
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
+    DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-
-# Can be 'linux-x64', 'linux-arm64', 'linux-arm', 'rhel.6-x64'.
+# Optional: target arch metadata
 ENV TARGETARCH=linux-x64
 
-#RUN declare repo_version=$(if command -v lsb_release &> /dev/null; then lsb_release -r -s; else grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"'; fi)
+# Base tools
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y -qq --no-install-recommends \
+        apt-transport-https \
+        apt-utils \
+        ca-certificates \
+        curl \
+        git \
+        gnupg \
+        iputils-ping \
+        jq \
+        lsb-release \
+        software-properties-common \
+        wget \
+        tar
 
-# Download Microsoft signing key and repository
-#RUN wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-# Install Microsoft signing key and repository
-#RUN dpkg -i packages-microsoft-prod.deb
-# Clean up
-#RUN rm packages-microsoft-prod.deb
-# Update packages
-RUN apt update
+# Azure CLI
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
+# --- Optional: install .NET 8 & 9 SDKs alongside 10 using dotnet-install ---
+# The base image already has SDK 10.0; this adds 8.0 and 9.0 so you can build
+# multi-targeted solutions (net8.0, net9.0, net10.0) in the same container.
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
+    chmod +x /tmp/dotnet-install.sh && \
+    /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet --quality GA && \
+    /tmp/dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet --quality GA && \
+    rm /tmp/dotnet-install.sh
 
+# JAVA
+RUN apt-get update && \
+    apt-get install -y -qq --no-install-recommends \
+        openjdk-11-jdk
 
-#Mono / DotNet
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | tee /etc/apt/sources.list.d/mono-official-stable.list
-RUN add-apt-repository ppa:dotnet/backports
-RUN apt-get update
-RUN apt-get install -y -qq --no-install-recommends \
-    tar \
-    mono-complete \
-    mono-devel \
-    dotnet-sdk-6.0 \
-    dotnet-sdk-7.0 \
-    dotnet-sdk-8.0 \
-    dotnet-sdk-9.0 \
-    dotnet-sdk-10.0 \
-#JAVA
-RUN apt-get install -y -qq --no-install-recommends \
-    openjdk-11-jdk
+# Docker (Docker CLI & daemon inside container – Docker-in-Docker style)
+# Note: base image is Debian, so use the Debian repo URL.
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+        gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+https://download.docker.com/linux/ubuntu \
+$(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && \
+    apt-get install -y -qq --no-install-recommends \
+        docker-ce \
+        docker-ce-cli \
+        containerd.io \
+        docker-compose-plugin
 
-#Docker
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-RUN apt-get update && apt-get install -y -qq --no-install-recommends \
-    docker-ce \
-    docker-ce-cli \
-    containerd.io \
-    docker-compose-plugin
+# Install NodeSource Node.js 22.x
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y -qq --no-install-recommends \
+        nodejs
 
-#Install NODE SOURCE
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+# Mono / tools / Python / etc.
+RUN apt-get update && \
+    apt-get install -y -qq --no-install-recommends \
+        mono-complete \
+        mono-devel \
+        unzip \
+        zip \
+        doxygen \
+        rsync \
+        openssh-client \
+        python3-pip
 
-#Tools
-RUN apt-get install -y -qq --no-install-recommends \
-    nuget \
-    unzip \
-    zip \
-    doxygen \
-    rsync \
-    openssh-client \
-    nodejs \ 
-    python3-pip
+# Python tools: mkdocs & mkdocs-material
+RUN pip3 install --no-cache-dir mkdocs mkdocs-material
 
-#DocFX
+# DocFX as global dotnet tool
 RUN dotnet tool install -g docfx
+
+# Make sure global dotnet tools are on PATH
 ENV PATH="${PATH}:/root/.dotnet/tools"
-#RUN groupadd docker && sudo usermod -aG docker USERNAME
-ENV pip install mkdocs mkdocs-material
+
+# (Optional) verify dotnet SDKs
+# RUN dotnet --list-sdks
+
+# Azure Pipelines agent / working directory
 WORKDIR /azp
 
+# Copy entry scripts
 COPY ./*.sh .
 
 RUN chmod +x *.sh
 
-ENTRYPOINT [ "./start.sh" ]
+ENTRYPOINT ["./start.sh"]
