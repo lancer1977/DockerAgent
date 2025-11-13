@@ -1,4 +1,4 @@
-# .NET 10 SDK official image (Debian-based)
+# .NET 10 SDK official image (Ubuntu noble-based)
 FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -23,14 +23,16 @@ RUN apt-get update && \
         lsb-release \
         software-properties-common \
         wget \
-        tar
+        tar \
+        python3 \
+        python3-venv \
+        python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 
 # Azure CLI
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # --- Optional: install .NET 8 & 9 SDKs alongside 10 using dotnet-install ---
-# The base image already has SDK 10.0; this adds 8.0 and 9.0 so you can build
-# multi-targeted solutions (net8.0, net9.0, net10.0) in the same container.
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
     chmod +x /tmp/dotnet-install.sh && \
     /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet --quality GA && \
@@ -40,10 +42,10 @@ RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && 
 # JAVA
 RUN apt-get update && \
     apt-get install -y -qq --no-install-recommends \
-        openjdk-11-jdk
+        openjdk-11-jdk && \
+    rm -rf /var/lib/apt/lists/*
 
-# Docker (Docker CLI & daemon inside container – Docker-in-Docker style)
-# Note: base image is Debian, so use the Debian repo URL.
+# Docker (Docker-in-Docker) – Ubuntu repo
 RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
         gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
@@ -55,27 +57,32 @@ $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
         docker-ce \
         docker-ce-cli \
         containerd.io \
-        docker-compose-plugin
+        docker-compose-plugin && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install NodeSource Node.js 22.x
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y -qq --no-install-recommends \
-        nodejs
+        nodejs && \
+    rm -rf /var/lib/apt/lists/*
 
-# Mono / tools / Python / etc.
+# Mono / misc tools
 RUN apt-get update && \
     apt-get install -y -qq --no-install-recommends \
         mono-complete \
-        mono-devel \
+        mono-devel \ 
         unzip \
         zip \
         doxygen \
         rsync \
-        openssh-client \
-        python3-pip
+        openssh-client && \
+    rm -rf /var/lib/apt/lists/*
 
-# Python tools: mkdocs & mkdocs-material
-RUN pip3 install --no-cache-dir mkdocs mkdocs-material
+# Python tools: mkdocs & mkdocs-material in a dedicated venv
+RUN python3 -m venv /opt/mkdocs && \
+    /opt/mkdocs/bin/pip install --no-cache-dir mkdocs mkdocs-material
+
+ENV PATH="/opt/mkdocs/bin:${PATH}"
 
 # DocFX as global dotnet tool
 RUN dotnet tool install -g docfx
@@ -90,7 +97,7 @@ ENV PATH="${PATH}:/root/.dotnet/tools"
 WORKDIR /azp
 
 # Copy entry scripts
-COPY ./*.sh .
+COPY ./*.sh ./
 
 RUN chmod +x *.sh
 
