@@ -75,7 +75,8 @@ RUN apt-get update && \
         zip \
         doxygen \
         rsync \
-        openssh-client && \
+        openssh-client \
+        gettext    && \
     rm -rf /var/lib/apt/lists/*
 
 # Python tools: mkdocs & mkdocs-material in a dedicated venv
