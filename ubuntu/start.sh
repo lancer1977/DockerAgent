@@ -22,6 +22,10 @@ print_header() {
   nocolor='\033[0m'
   echo -e "${lightcyan}$1${nocolor}"
 }
+if [ -n "${DOCKER_PAT_FILE:-}" ] && [ -f "$DOCKER_PAT_FILE" ]; then
+  DOCKER_PAT="$(cat "$DOCKER_PAT_FILE")"
+  export DOCKER_PAT
+fi
 
 
 if [ -z "$AZP_URL" ]; then
@@ -53,6 +57,15 @@ export AGENT_ALLOW_RUNASROOT="1"
 export VSO_AGENT_IGNORE=AZP_TOKEN,AZP_TOKEN_FILE
 
 print_header "1. Determining matching Azure Pipelines agent..."
+
+TARGETARCH="${TARGETARCH:-$(uname -m)}"
+case "$TARGETARCH" in
+  x86_64|amd64) TARGETARCH="linux-x64" ;;
+  aarch64|arm64) TARGETARCH="linux-arm64" ;;
+  armv7l|arm) TARGETARCH="linux-arm" ;;
+esac
+
+
 AZP_MERGED_URL="$AZP_URL/_apis/distributedtask/packages/agent?platform=$TARGETARCH&top=1"
 AZP_AGENT_PACKAGES=$(curl -LsS -u user:$(cat "$AZP_TOKEN_FILE") -H 'Accept:application/json;' "$AZP_MERGED_URL")
 AZP_AGENT_PACKAGE_LATEST_URL=$(echo "$AZP_AGENT_PACKAGES" | jq -r '.value[0].downloadUrl')
