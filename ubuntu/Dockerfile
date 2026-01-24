@@ -58,8 +58,9 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
       > /etc/apt/sources.list.d/docker.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-      docker-ce docker-ce-cli containerd.io docker-compose-plugin && \
+      docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin && \
     rm -rf /var/lib/apt/lists/*
+
 
 # ---- Node.js 22.x ----
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
