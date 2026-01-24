@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+  adoAgent1:
+    image: lancer1977/dockeragent:latest
+    container_name: api-agent1
+    restart: unless-stopped
+    environment:
+      TZ: US/Eastern
+      GUID: 1000
+      PUID: 1000
+      AZP_URL: ${AZP_URL:?AZP_URL is required}
+      AZP_TOKEN: ${AZP_TOKEN:?AZP_TOKEN is required}
+      AZP_AGENT_NAME: server-1
+      AZP_POOL: Default
+      NUGET_NAME: ${NUGET_NAME}
+      NUGET_SOURCE: ${NUGET_SOURCE}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PAT: ${DOCKER_PAT}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/lancer1977/servers/agent2/.ssh:/root/.ssh:r
