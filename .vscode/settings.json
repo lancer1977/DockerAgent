@@ -1,3 +1,8 @@
 {
-    "DockerRun.DisableDockerrc": true
+  "DockerRun.DisableDockerrc": true,
+  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorCustomizations": {
+    "sideBar.background": "#4d2c5b"
+  }
 }
