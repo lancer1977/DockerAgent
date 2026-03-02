@@ -17,7 +17,7 @@ A docker image to create a containerized GitHub Actions self-hosted runner.
 
 ```bash
 cd github
-docker build -t lancer1977/githubagent:latest .
+docker build -t ghcr.io/lancer1977/dockeragent/github-agent:latest .
 ```
 
 ### 2. Configure Environment
@@ -36,7 +36,7 @@ Required environment variables:
 Optional environment variables:
 - `GITHUB_RUNNER_NAME`: Custom runner name (defaults to `github-runner-$(hostname)`)
 - `GITHUB_RUNNER_POOL`: Runner group name (defaults to `Default`)
-- `DOCKER_USERNAME`/`DOCKER_PAT`: Docker Hub credentials for image pushes
+- `GHCR_USERNAME`/`GHCR_TOKEN`: GitHub Container Registry credentials for image pulls/pushes
 - `GITHUB_PACKAGES_TOKEN`: Token for GitHub Packages access
 
 ### 3. Run with Docker Compose
@@ -54,9 +54,11 @@ docker run -d \
   -e GITHUB_URL="https://github.com/your-org/your-repo" \
   -e GITHUB_TOKEN="your_github_pat" \
   -e GITHUB_RUNNER_NAME="my-runner" \
+  -e GHCR_USERNAME="your_github_username" \
+  -e GHCR_TOKEN="your_github_pat" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /path/to/ssh:/root/.ssh:ro \
-  lancer1977/githubagent:latest
+  ghcr.io/lancer1977/dockeragent/github-agent:latest
 ```
 
 ## Creating GitHub Personal Access Token

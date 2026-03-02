@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   adoAgent1:
-    image: lancer1977/dockeragent:latest
+    image: ghcr.io/lancer1977/dockeragent/ubuntu-agent:latest
     container_name: api-agent1
     restart: unless-stopped
     environment:
@@ -15,8 +15,8 @@ services:
       AZP_POOL: Default
       NUGET_NAME: ${NUGET_NAME}
       NUGET_SOURCE: ${NUGET_SOURCE}
-      DOCKER_USERNAME: ${DOCKER_USERNAME}
-      DOCKER_PAT: ${DOCKER_PAT}
+      GHCR_USERNAME: ${GHCR_USERNAME}
+      GHCR_TOKEN: ${GHCR_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/lancer1977/servers/agent2/.ssh:/root/.ssh:r

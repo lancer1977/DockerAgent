@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   githubRunner1:
-    image: lancer1977/githubagent:latest
+    image: ghcr.io/lancer1977/dockeragent/github-agent:latest
     container_name: github-runner1
     restart: unless-stopped
     environment:
@@ -13,8 +13,8 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:?GITHUB_TOKEN is required}
       GITHUB_RUNNER_NAME: github-runner-1
       GITHUB_RUNNER_POOL: ${GITHUB_RUNNER_POOL:-Default}
-      DOCKER_USERNAME: ${DOCKER_USERNAME}
-      DOCKER_PAT: ${DOCKER_PAT}
+      GHCR_USERNAME: ${GHCR_USERNAME}
+      GHCR_TOKEN: ${GHCR_TOKEN}
       GITHUB_PACKAGES_TOKEN: ${GITHUB_PACKAGES_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -24,7 +24,7 @@ services:
       - github-runner-network
 
   githubRunner2:
-    image: lancer1977/githubagent:latest
+    image: ghcr.io/lancer1977/dockeragent/github-agent:latest
     container_name: github-runner2
     restart: unless-stopped
     environment:
@@ -35,8 +35,8 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:?GITHUB_TOKEN is required}
       GITHUB_RUNNER_NAME: github-runner-2
       GITHUB_RUNNER_POOL: ${GITHUB_RUNNER_POOL:-Default}
-      DOCKER_USERNAME: ${DOCKER_USERNAME}
-      DOCKER_PAT: ${DOCKER_PAT}
+      GHCR_USERNAME: ${GHCR_USERNAME}
+      GHCR_TOKEN: ${GHCR_TOKEN}
       GITHUB_PACKAGES_TOKEN: ${GITHUB_PACKAGES_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
