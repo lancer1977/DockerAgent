@@ -1,0 +1,15 @@
+# Secrets / local runner state (do not commit)
+/github/.env
+/github/.credentials*
+/github/.path
+/github/.runner
+
+# GitHub Actions runner extracted files + downloads
+/github/externals/
+/github/actions-runner-*.tar.gz
+
+# Generated at runtime from template
+/github/run-helper.sh
+
+# General
+.DS_Store
