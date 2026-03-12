@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Render a runtime env file for Docker Compose from Bitwarden org items.
+# Render a runtime env file for Docker Compose from Bitwarden.
+#
+# Uses a single Login item with custom fields for both config and secrets.
+# Create the item in Bitwarden with fields:
+#   GITHUB_TOKEN (hidden), AZDO_TOKEN (hidden),
+#   DOCKER_REGISTRY, GITHUB_ORG, GITHUB_RUNNER_NAME, GITHUB_RUNNER_LABELS,
+#   AZDO_ORG_URL, AZDO_POOL, AZDO_AGENT_NAME, VERSION, TZ
 #
 # Requirements:
 #   - bw CLI installed and unlocked
@@ -15,8 +21,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 OUT_FILE="${1:-$SCRIPT_DIR/.env.runtime}"
 
-CONFIG_ITEM_ID="${BW_DOCKERAGENT_CONFIG_ITEM_ID:-5bae9e62-e9d8-433c-8019-b40b003c93a3}"
-SECRETS_ITEM_ID="${BW_DOCKERAGENT_SECRETS_ITEM_ID:-312c2b11-63d8-4055-9b59-b40b003c9a75}"
+ITEM_ID="${BW_DOCKERAGENT_ITEM_ID:-80186610-10ab-4eb5-a2ce-b40b005178eb}"
 
 if ! command -v bw >/dev/null 2>&1; then
   echo "ERROR: bw CLI not found" >&2
@@ -33,21 +38,18 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
-CONFIG_JSON_FILE="$(mktemp)"
-SECRETS_JSON_FILE="$(mktemp)"
-trap 'rm -f "$CONFIG_JSON_FILE" "$SECRETS_JSON_FILE"' EXIT
+ITEM_JSON_FILE="$(mktemp)"
+trap 'rm -f "$ITEM_JSON_FILE"' EXIT
 
-bw --session "$BW_SESSION" get item "$CONFIG_ITEM_ID" > "$CONFIG_JSON_FILE"
-bw --session "$BW_SESSION" get item "$SECRETS_ITEM_ID" > "$SECRETS_JSON_FILE"
+bw --session "$BW_SESSION" get item "$ITEM_ID" > "$ITEM_JSON_FILE"
 
-python3 - "$OUT_FILE" "$CONFIG_JSON_FILE" "$SECRETS_JSON_FILE" <<'PY'
+python3 - "$OUT_FILE" "$ITEM_JSON_FILE" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 out_file = Path(sys.argv[1])
-config = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
-secrets = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+item = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 
 def field_map(item):
     result = {}
@@ -58,30 +60,29 @@ def field_map(item):
             result[name] = "" if value is None else value
     return result
 
-cfg = field_map(config)
-sec = field_map(secrets)
+fields = field_map(item)
 
 values = {
-    "VERSION": cfg.get("VERSION", "latest"),
-    "DOCKER_REGISTRY": cfg.get("DOCKER_REGISTRY", "lancer1977"),
-    "TZ": cfg.get("TZ", "America/New_York"),
-    "DOCKER_BUILDKIT": cfg.get("DOCKER_BUILDKIT", "1"),
-    "COMPOSE_DOCKER_CLI_BUILD": cfg.get("COMPOSE_DOCKER_CLI_BUILD", "1"),
-    "GITHUB_ORG": cfg.get("GITHUB_ORG", "Polyhydra-Games"),
-    "GITHUB_URL": cfg.get("GITHUB_URL", f"https://github.com/{cfg.get('GITHUB_ORG', 'Polyhydra-Games')}"),
-    "GITHUB_RUNNER_NAME": cfg.get("GITHUB_RUNNER_NAME", "github-runner"),
-    "GITHUB_RUNNER_LABELS": cfg.get("GITHUB_RUNNER_LABELS", "docker,linux"),
-    "GITHUB_TOKEN": sec.get("GITHUB_TOKEN", ""),
-    "AZDO_ORG_URL": cfg.get("AZDO_ORG_URL", "https://dev.azure.com/PolyhydraGames"),
-    "AZDO_POOL": cfg.get("AZDO_POOL", "Default"),
-    "AZDO_AGENT_NAME": cfg.get("AZDO_AGENT_NAME", "azure-runner"),
-    "AZDO_TOKEN": sec.get("AZDO_TOKEN", ""),
-    "GODOT_VERSION": cfg.get("GODOT_VERSION", "4.2.2"),
-    "GODOT_PROJECT_PATH": cfg.get("GODOT_PROJECT_PATH", "/godot-projects"),
+    "VERSION": fields.get("VERSION", "latest"),
+    "DOCKER_REGISTRY": fields.get("DOCKER_REGISTRY", "lancer1977"),
+    "TZ": fields.get("TZ", "America/New_York"),
+    "DOCKER_BUILDKIT": "1",
+    "COMPOSE_DOCKER_CLI_BUILD": "1",
+    "GITHUB_ORG": fields.get("GITHUB_ORG", "Polyhydra-Games"),
+    "GITHUB_URL": f"https://github.com/{fields.get('GITHUB_ORG', 'Polyhydra-Games')}",
+    "GITHUB_RUNNER_NAME": fields.get("GITHUB_RUNNER_NAME", "github-runner"),
+    "GITHUB_RUNNER_LABELS": fields.get("GITHUB_RUNNER_LABELS", "docker,linux"),
+    "GITHUB_TOKEN": fields.get("GITHUB_TOKEN", ""),
+    "AZDO_ORG_URL": fields.get("AZDO_ORG_URL", "https://dev.azure.com/PolyhydraGames"),
+    "AZDO_POOL": fields.get("AZDO_POOL", "Default"),
+    "AZDO_AGENT_NAME": fields.get("AZDO_AGENT_NAME", "azure-runner"),
+    "AZDO_TOKEN": fields.get("AZDO_TOKEN", ""),
+    "GODOT_VERSION": "4.2.2",
+    "GODOT_PROJECT_PATH": "/godot-projects",
 }
 
 lines = [
-    "# Generated from Bitwarden items for DockerAgent.",
+    "# Generated from Bitwarden: DockerAgent Credentials",
     "# Do not hand-edit; rerun render-env-from-bitwarden.sh instead.",
     "",
 ]

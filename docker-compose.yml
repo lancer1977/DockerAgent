@@ -24,7 +24,6 @@ services:
           - node.role == worker
       resources:
         limits:
-          cpus: '4'
           memory: 8G
     networks:
       - agents
@@ -54,7 +53,6 @@ services:
           - node.role == worker
       resources:
         limits:
-          cpus: '4'
           memory: 8G
     networks:
       - agents
@@ -80,7 +78,6 @@ services:
           - node.role == worker
       resources:
         limits:
-          cpus: '2'
           memory: 4G
     networks:
       - agents
