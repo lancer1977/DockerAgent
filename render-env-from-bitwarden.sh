@@ -77,8 +77,6 @@ values = {
     "AZDO_POOL": fields.get("AZDO_POOL", "Default"),
     "AZDO_AGENT_NAME": fields.get("AZDO_AGENT_NAME", "azure-runner"),
     "AZDO_TOKEN": fields.get("AZDO_TOKEN", ""),
-    "GODOT_VERSION": "4.2.2",
-    "GODOT_PROJECT_PATH": "/godot-projects",
 }
 
 lines = [

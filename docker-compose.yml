@@ -1,4 +1,6 @@
-# Unified Docker Agent - supports GitHub Actions, Azure DevOps, and Godot
+version: "3.8"
+
+# Unified Docker Agent - supports GitHub Actions and Azure DevOps
 # Build: docker build -t lancer1977/dockeragent:latest .
 # Render env from Bitwarden: ./render-env-from-bitwarden.sh
 # Deploy: docker stack deploy -c docker-compose.yml docker-agents
@@ -57,31 +59,6 @@ services:
     networks:
       - agents
 
-  godot-runner:
-    image: ${DOCKER_REGISTRY:-lancer1977}/dockeragent:${VERSION:-latest}
-    container_name: godot-runner
-    env_file:
-      - ${DOCKERAGENT_ENV_FILE:-.env.runtime}
-    environment:
-      - RUNNER_TYPE=godot
-      - TZ=${TZ:-America/New_York}
-      - GODOT_PROJECT_PATH=${GODOT_PROJECT_PATH:-/projects}
-    volumes:
-      - godot-runner-data:/godot-projects
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.role == worker
-      resources:
-        limits:
-          memory: 4G
-    networks:
-      - agents
-
 networks:
   agents:
     driver: overlay
@@ -90,4 +67,3 @@ networks:
 volumes:
   github-runner-data:
   azure-runner-data:
-  godot-runner-data:

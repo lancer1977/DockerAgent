@@ -1,4 +1,4 @@
-# Unified Docker Agent (GitHub + Azure DevOps + Godot)
+# Unified Docker Agent (GitHub Actions + Azure DevOps)
 # Build with: docker build -t lancer1977/dockeragent:latest .
 # Run with: docker run -e RUNNER_TYPE=github -e GITHUB_ORG=... -e GITHUB_TOKEN=...
 
@@ -69,7 +69,7 @@ RUN curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && 
     rm -f /tmp/dotnet-install.sh
 
 # ============================================
-# Java (OpenJDK 11 + 17 for newer Godot)
+# Java (OpenJDK 11 + 17 for builds)
 # ============================================
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -135,18 +135,9 @@ RUN python3 -m venv /opt/mkdocs && \
 RUN dotnet tool install -g docfx
 
 # ============================================
-# Godot (optional, for game builds)
-# ============================================
-ENV GODOT_VERSION=4.2.2
-RUN wget https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip -O /tmp/godot.zip && \
-    unzip -j /tmp/godot.zip -d /usr/local/bin/ Godot* && \
-    chmod +x /usr/local/bin/Godot* && \
-    rm /tmp/godot.zip
-
-# ============================================
 # Runner directories
 # ============================================
-RUN mkdir -p /actions-runner /azp /godot-projects
+RUN mkdir -p /actions-runner /azp
 
 # ============================================
 # Copy scripts from each runner type
@@ -157,13 +148,10 @@ COPY github/config.sh /actions-runner/config.sh
 COPY github/runscripts.sh /actions-runner/runscripts.sh
 COPY AzureDevops/start.sh /azp/start.sh
 COPY AzureDevops/runscripts.sh /azp/runscripts.sh
-COPY godot/start.sh /godot-projects/start.sh
-COPY godot/runscripts.sh /godot-projects/runscripts.sh
 
 # Make scripts executable
 RUN chmod +x /actions-runner/*.sh && \
-    chmod +x /azp/*.sh && \
-    chmod +x /godot-projects/*.sh
+    chmod +x /azp/*.sh
 
 # Create entrypoint that routes based on RUNNER_TYPE
 COPY <<'EOF' /entrypoint.sh
@@ -184,18 +172,12 @@ case "${RUNNER_TYPE}" in
         cd /azp
         exec ./start.sh
         ;;
-    godot)
-        echo "Starting Godot Agent..."
-        cd /godot-projects
-        exec ./start.sh
-        ;;
     *)
-        echo "ERROR: RUNNER_TYPE must be set to: github, azure, or godot"
+        echo "ERROR: RUNNER_TYPE must be set to: github or azure"
         echo ""
         echo "Examples:"
         echo "  docker run -e RUNNER_TYPE=github -e GITHUB_ORG=MyOrg -e GITHUB_TOKEN=... dockeragent"
         echo "  docker run -e RUNNER_TYPE=azure -e AZP_URL=https://dev.azure.com/MyOrg -e AZP_TOKEN=... dockeragent"
-        echo "  docker run -e RUNNER_TYPE=godot dockeragent"
         exit 1
         ;;
 esac
