@@ -6,12 +6,13 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+ARG RUNNER_TYPE=none
 ENV DEBIAN_FRONTEND=noninteractive \
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     TARGETARCH=linux-x64 \
     PATH="/root/.dotnet/tools:/opt/mkdocs/bin:${PATH}" \
-    RUNNER_TYPE=${RUNNER_TYPE:-none}
+    RUNNER_TYPE=${RUNNER_TYPE}
 
 # ============================================
 # Base packages (shared by all runners)
