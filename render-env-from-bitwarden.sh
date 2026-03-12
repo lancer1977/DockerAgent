@@ -68,11 +68,18 @@ values = {
     "TZ": fields.get("TZ", "America/New_York"),
     "DOCKER_BUILDKIT": "1",
     "COMPOSE_DOCKER_CLI_BUILD": "1",
+    # GitHub runner (GITHUB_* vars)
     "GITHUB_ORG": fields.get("GITHUB_ORG", "Polyhydra-Games"),
-    "GITHUB_URL": f"https://github.com/{fields.get('GITHUB_ORG', 'Polyhydra-Games')}",
     "GITHUB_RUNNER_NAME": fields.get("GITHUB_RUNNER_NAME", "github-runner"),
     "GITHUB_RUNNER_LABELS": fields.get("GITHUB_RUNNER_LABELS", "docker,linux"),
     "GITHUB_TOKEN": fields.get("GITHUB_TOKEN", ""),
+    # Azure runner (AZP_* vars for the container)
+    "AZP_URL": fields.get("AZDO_ORG_URL", "https://dev.azure.com/PolyhydraGames"),
+    "AZP_POOL": fields.get("AZDO_POOL", "Default"),
+    "AZP_AGENT_NAME": fields.get("AZDO_AGENT_NAME", "azure-runner"),
+    "AZP_TOKEN": fields.get("AZDO_TOKEN", ""),
+    "AZP_PAT": fields.get("AZDO_TOKEN", ""),
+    # Azure runner (AZDO_* vars for docker-compose interpolation)
     "AZDO_ORG_URL": fields.get("AZDO_ORG_URL", "https://dev.azure.com/PolyhydraGames"),
     "AZDO_POOL": fields.get("AZDO_POOL", "Default"),
     "AZDO_AGENT_NAME": fields.get("AZDO_AGENT_NAME", "azure-runner"),

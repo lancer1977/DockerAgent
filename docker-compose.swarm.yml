@@ -1,0 +1,35 @@
+# Swarm-specific overrides for DockerAgent
+# Usage: docker stack deploy -c docker-compose.yml -c docker-compose.swarm.yml docker-agents
+#
+# This file extends docker-compose.yml with Swarm-specific settings:
+# - Deploy mode with replicas and placement constraints
+# - Resource limits
+# - Overlay network driver
+
+services:
+  github-runner:
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          memory: 8G
+
+  azure-runner:
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          memory: 8G
+
+networks:
+  agents:
+    driver: overlay
+    attachable: true

@@ -30,20 +30,25 @@ if [[ ! -f ./config.sh ]]; then
     *) die "Unsupported architecture: $ARCH" ;;
   esac
   
-  # Get latest agent version
-  AGENT_VERSION=$(curl -s "${AZP_URL}/_apis/distributedtask/packages/agent?platform=linux&architecture=${AGENT_ARCH}" | \
+  # Get latest agent version (requires auth)
+  AGENT_VERSION_URL="${AZP_URL}/_apis/distributedtask/packages/agent?platform=linux&architecture=${AGENT_ARCH}"
+  log "Fetching agent version from ${AZP_URL}..."
+  AGENT_VERSION=$(curl -s -H "Authorization: Bearer ${AZP_TOKEN}" "${AGENT_VERSION_URL}" | \
     jq -r '.value[0].version')
   
   if [[ -z "$AGENT_VERSION" ]] || [[ "$AGENT_VERSION" == "null" ]]; then
     # Fallback to known version
     AGENT_VERSION="4.248.0"
-    log "Could not detect agent version, using default: $AGENT_VERSION"
+    log "Could not detect agent version, using default: ${AGENT_VERSION}"
+  else
+    log "Found agent version ${AGENT_VERSION}"
   fi
   
+  # Download agent (requires auth)
   AGENT_URL="${AZP_URL}/_apis/distributedtask/packages/agent/${AGENT_VERSION}/linux-${AGENT_ARCH}-agent.tar.gz"
   
-  log "Downloading agent from $AGENT_URL"
-  curl -L -o agent.tar.gz "$AGENT_URL"
+  log "Downloading agent from ${AZP_URL}..."
+  curl -sSL -H "Authorization: Bearer ${AZP_TOKEN}" -o agent.tar.gz "${AGENT_URL}"
   
   log "Extracting agent..."
   tar xzf agent.tar.gz

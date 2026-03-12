@@ -5,17 +5,23 @@ log() { echo "[$(date +'%H:%M:%S')] $*"; }
 die() { echo "ERROR: $*" 1>&2; exit 1; }
 
 # ---- GitHub Actions Runner Setup ----
-if [[ -z "${GITHUB_URL:-}" ]]; then
-  die "GITHUB_URL environment variable is required"
+if [[ -z "${GITHUB_ORG:-}" ]]; then
+  die "GITHUB_ORG environment variable is required"
 fi
 
 if [[ -z "${GITHUB_TOKEN:-}" ]]; then
   die "GITHUB_TOKEN environment variable is required"
 fi
 
+# GitHub API endpoint for org runners
+GITHUB_API_URL="https://api.github.com/orgs/${GITHUB_ORG}"
+
 # Get a fresh registration token from the API
-log "Fetching runner registration token..."
-REGISTRATION_RESPONSE=$(curl -s -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${GITHUB_URL}/actions/runners/registration-token")
+log "Fetching runner registration token from ${GITHUB_API_URL}..."
+REGISTRATION_RESPONSE=$(curl -s -X POST \
+  -H "Authorization: token ${GITHUB_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  "${GITHUB_API_URL}/actions/runners/registration-token")
 RUNNER_TOKEN=$(echo "$REGISTRATION_RESPONSE" | jq -r '.token')
 
 if [[ -z "$RUNNER_TOKEN" ]] || [[ "$RUNNER_TOKEN" == "null" ]]; then
@@ -31,6 +37,9 @@ fi
 if [[ -z "${GITHUB_RUNNER_POOL:-}" ]]; then
   GITHUB_RUNNER_POOL="Default"
 fi
+
+# Runner URL for config.sh (different from API URL)
+GITHUB_RUNNER_URL="https://github.com/${GITHUB_ORG}"
 
 # Download GitHub Actions runner
 # Hardcoded for now - can add version check later
@@ -50,7 +59,7 @@ rm actions-runner.tar.gz
 # Configure the runner
 log "Configuring GitHub Actions runner..."
 ./config.sh \
-  --url "${GITHUB_URL}" \
+  --url "${GITHUB_RUNNER_URL}" \
   --token "${RUNNER_TOKEN}" \
   --name "${GITHUB_RUNNER_NAME}" \
   --runnergroup "${GITHUB_RUNNER_POOL}" \
@@ -61,7 +70,10 @@ log "Configuring GitHub Actions runner..."
 cleanup() {
   if [[ -f .runner ]]; then
     log "Cleanup: removing GitHub Actions runner registration..."
-    REMOVAL_RESPONSE=$(curl -s -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${GITHUB_URL}/actions/runners/remove-token")
+    REMOVAL_RESPONSE=$(curl -s -X POST \
+      -H "Authorization: token ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      "${GITHUB_API_URL}/actions/runners/remove-token")
     REMOVAL_TOKEN=$(echo "$REMOVAL_RESPONSE" | jq -r '.token')
     if [[ -n "$REMOVAL_TOKEN" ]] && [[ "$REMOVAL_TOKEN" != "null" ]]; then
       ./config.sh remove --unattended --token "${REMOVAL_TOKEN}" || true

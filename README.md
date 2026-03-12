@@ -25,9 +25,17 @@ This generates `.env.runtime` for Docker Compose / Swarm deployment.
 
 ### Deploy
 
+**Standalone (single host):**
 ```bash
-docker stack deploy -c docker-compose.yml docker-agents
+docker-compose up -d
 ```
+
+**Swarm (cluster):**
+```bash
+docker stack deploy -c docker-compose.yml -c docker-compose.swarm.yml docker-agents
+```
+
+The base `docker-compose.yml` works for standalone mode (bridge network, no deploy constraints). The `docker-compose.swarm.yml` overlay adds Swarm-specific settings (overlay network, replicas, placement constraints, resource limits).
 
 ## Environment files
 

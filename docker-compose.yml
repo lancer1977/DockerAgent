@@ -1,9 +1,13 @@
 version: "3.8"
 
 # Unified Docker Agent - supports GitHub Actions and Azure DevOps
+# Works for both standalone (docker-compose up) and Swarm (docker stack deploy)
+#
+# Standalone: docker-compose up -d
+# Swarm:      docker stack deploy -c docker-compose.yml -c docker-compose.swarm.yml docker-agents
+#
 # Build: docker build -t lancer1977/dockeragent:latest .
 # Render env from Bitwarden: ./render-env-from-bitwarden.sh
-# Deploy: docker stack deploy -c docker-compose.yml docker-agents
 
 services:
   github-runner:
@@ -18,15 +22,6 @@ services:
       - github-runner-data:/actions-runner
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.role == worker
-      resources:
-        limits:
-          memory: 8G
     networks:
       - agents
 
@@ -37,32 +32,17 @@ services:
       - ${DOCKERAGENT_ENV_FILE:-.env.runtime}
     environment:
       - RUNNER_TYPE=azure
-      - AZP_URL=${AZDO_ORG_URL}
-      - AZP_TOKEN=${AZDO_TOKEN}
-      - AZP_PAT=${AZDO_TOKEN}
-      - AZP_POOL=${AZDO_POOL:-Default}
-      - AZP_AGENT_NAME=${AZDO_AGENT_NAME:-azure-runner}
       - TZ=${TZ:-America/New_York}
     volumes:
       - azure-runner-data:/azp
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.role == worker
-      resources:
-        limits:
-          memory: 8G
     networks:
       - agents
 
 networks:
   agents:
-    driver: overlay
-    attachable: true
+    driver: bridge
 
 volumes:
   github-runner-data:
