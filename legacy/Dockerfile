@@ -101,6 +101,12 @@ RUN dotnet tool install -g docfx
 # GitHub Actions runner workdir
 WORKDIR /actions-runner
 
+# Create runneruser (UID 1000) for non-root execution (ignore if already exists)
+RUN (groupadd -g 1000 runnergroup 2>/dev/null || true) && \
+    (useradd -u 1000 -g 1000 -d /home/runneruser -s /bin/bash runneruser 2>/dev/null || true) && \
+    mkdir -p /home/runneruser && \
+    chown -R 1000:1000 /actions-runner /home/runneruser
+
 COPY ./*.sh ./
 RUN chmod +x ./*.sh
 

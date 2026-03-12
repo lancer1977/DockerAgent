@@ -1,16 +1,13 @@
-version: "3.7"
-
 services:
   githubRunner1:
     image: ghcr.io/lancer1977/dockeragent/github-agent:latest
     container_name: github-runner1
     restart: unless-stopped
+    user: "1000:1000"
     environment:
       TZ: US/Eastern
-      GUID: 1000
-      PUID: 1000
       GITHUB_URL: ${GITHUB_URL:?GITHUB_URL is required}
-      GITHUB_TOKEN: ${GITHUB_TOKEN:?GITHUB_TOKEN is required}
+      GITHUB_TOKEN: ${GITHUB_ORG_TOKEN:?GITHUB_ORG_TOKEN is required}
       GITHUB_RUNNER_NAME: github-runner-1
       GITHUB_RUNNER_POOL: ${GITHUB_RUNNER_POOL:-Default}
       GHCR_USERNAME: ${GHCR_USERNAME}
@@ -18,7 +15,7 @@ services:
       GITHUB_PACKAGES_TOKEN: ${GITHUB_PACKAGES_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/lancer1977/servers/github-runner1/.ssh:/root/.ssh:ro
+      - /home/lancer1977/servers/github-runner1/.ssh:/home/runneruser/.ssh:ro
       - github-runner1-work:/actions-runner/_work
     networks:
       - github-runner-network
@@ -27,12 +24,11 @@ services:
     image: ghcr.io/lancer1977/dockeragent/github-agent:latest
     container_name: github-runner2
     restart: unless-stopped
+    user: "1000:1000"
     environment:
       TZ: US/Eastern
-      GUID: 1000
-      PUID: 1000
       GITHUB_URL: ${GITHUB_URL:?GITHUB_URL is required}
-      GITHUB_TOKEN: ${GITHUB_TOKEN:?GITHUB_TOKEN is required}
+      GITHUB_TOKEN: ${GITHUB_ORG_TOKEN:?GITHUB_ORG_TOKEN is required}
       GITHUB_RUNNER_NAME: github-runner-2
       GITHUB_RUNNER_POOL: ${GITHUB_RUNNER_POOL:-Default}
       GHCR_USERNAME: ${GHCR_USERNAME}
@@ -40,7 +36,7 @@ services:
       GITHUB_PACKAGES_TOKEN: ${GITHUB_PACKAGES_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/lancer1977/servers/github-runner2/.ssh:/root/.ssh:ro
+      - /home/lancer1977/servers/github-runner2/.ssh:/home/runneruser/.ssh:ro
       - github-runner2-work:/actions-runner/_work
     networks:
       - github-runner-network

@@ -1,0 +1,96 @@
+version: "3.8"
+
+# Unified Docker Agent - supports GitHub Actions, Azure DevOps, and Godot
+# Build: docker build -t lancer1977/dockeragent:latest .
+# Deploy: docker stack deploy -c docker-compose.yml docker-agents
+
+services:
+  github-runner:
+    image: ${DOCKER_REGISTRY:-lancer1977}/dockeragent:${VERSION:-latest}
+    container_name: github-runner
+    env_file:
+      - .env
+    environment:
+      - RUNNER_TYPE=github
+      - TZ=${TZ:-America/New_York}
+    volumes:
+      - github-runner-data:/actions-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+    networks:
+      - agents
+
+  azure-runner:
+    image: ${DOCKER_REGISTRY:-lancer1977}/dockeragent:${VERSION:-latest}
+    container_name: azure-runner
+    env_file:
+      - .env
+    environment:
+      - RUNNER_TYPE=azure
+      - AZP_URL=${AZDO_ORG_URL}
+      - AZP_TOKEN=${AZDO_TOKEN}
+      - AZP_POOL=${AZDO_POOL:-Default}
+      - AZP_AGENT_NAME=${AZDO_AGENT_NAME:-azure-runner}
+      - TZ=${TZ:-America/New_York}
+    volumes:
+      - azure-runner-data:/azp
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+    networks:
+      - agents
+
+  godot-runner:
+    image: ${DOCKER_REGISTRY:-lancer1977}/dockeragent:${VERSION:-latest}
+    container_name: godot-runner
+    env_file:
+      - .env
+    environment:
+      - RUNNER_TYPE=godot
+      - TZ=${TZ:-America/New_York}
+      - GODOT_PROJECT_PATH=${GODOT_PROJECT_PATH:-/projects}
+    volumes:
+      - godot-runner-data:/godot-projects
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    networks:
+      - agents
+
+networks:
+  agents:
+    driver: overlay
+    attachable: true
+
+volumes:
+  github-runner-data:
+  azure-runner-data:
+  godot-runner-data:
