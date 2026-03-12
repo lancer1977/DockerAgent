@@ -151,14 +151,19 @@ RUN mkdir -p /actions-runner /azp /godot-projects
 # ============================================
 # Copy scripts from each runner type
 # ============================================
-COPY github/*.sh /actions-runner/ 2>/dev/null || true
-COPY AzureDevops/*.sh /azp/ 2>/dev/null || true
-COPY godot/*.sh /godot-projects/ 2>/dev/null || true
+COPY github/start.sh /actions-runner/start.sh
+COPY github/run.sh /actions-runner/run.sh
+COPY github/config.sh /actions-runner/config.sh
+COPY github/runscripts.sh /actions-runner/runscripts.sh
+COPY AzureDevops/start.sh /azp/start.sh
+COPY AzureDevops/runscripts.sh /azp/runscripts.sh
+COPY godot/start.sh /godot-projects/start.sh
+COPY godot/runscripts.sh /godot-projects/runscripts.sh
 
 # Make scripts executable
-RUN chmod +x /actions-runner/*.sh 2>/dev/null || true && \
-    chmod +x /azp/*.sh 2>/dev/null || true && \
-    chmod +x /godot-projects/*.sh 2>/dev/null || true
+RUN chmod +x /actions-runner/*.sh && \
+    chmod +x /azp/*.sh && \
+    chmod +x /godot-projects/*.sh
 
 # Create entrypoint that routes based on RUNNER_TYPE
 COPY <<'EOF' /entrypoint.sh
