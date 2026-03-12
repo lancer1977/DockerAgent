@@ -1,7 +1,6 @@
-version: "3.8"
-
 # Unified Docker Agent - supports GitHub Actions, Azure DevOps, and Godot
 # Build: docker build -t lancer1977/dockeragent:latest .
+# Render env from Bitwarden: ./render-env-from-bitwarden.sh
 # Deploy: docker stack deploy -c docker-compose.yml docker-agents
 
 services:
@@ -9,7 +8,7 @@ services:
     image: ${DOCKER_REGISTRY:-lancer1977}/dockeragent:${VERSION:-latest}
     container_name: github-runner
     env_file:
-      - .env
+      - ${DOCKERAGENT_ENV_FILE:-.env.runtime}
     environment:
       - RUNNER_TYPE=github
       - TZ=${TZ:-America/New_York}
@@ -34,11 +33,12 @@ services:
     image: ${DOCKER_REGISTRY:-lancer1977}/dockeragent:${VERSION:-latest}
     container_name: azure-runner
     env_file:
-      - .env
+      - ${DOCKERAGENT_ENV_FILE:-.env.runtime}
     environment:
       - RUNNER_TYPE=azure
       - AZP_URL=${AZDO_ORG_URL}
       - AZP_TOKEN=${AZDO_TOKEN}
+      - AZP_PAT=${AZDO_TOKEN}
       - AZP_POOL=${AZDO_POOL:-Default}
       - AZP_AGENT_NAME=${AZDO_AGENT_NAME:-azure-runner}
       - TZ=${TZ:-America/New_York}
@@ -63,7 +63,7 @@ services:
     image: ${DOCKER_REGISTRY:-lancer1977}/dockeragent:${VERSION:-latest}
     container_name: godot-runner
     env_file:
-      - .env
+      - ${DOCKERAGENT_ENV_FILE:-.env.runtime}
     environment:
       - RUNNER_TYPE=godot
       - TZ=${TZ:-America/New_York}

@@ -11,5 +11,8 @@
 # Generated at runtime from template
 /github/run-helper.sh
 
+# Generated env from Bitwarden
+.env.runtime
+
 # General
 .DS_Store

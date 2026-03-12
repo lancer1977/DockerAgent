@@ -1,17 +1,25 @@
-name: Publish GitHub Agent
+name: Publish Unified DockerAgent
 
 on:
   push:
     branches: [ main, master ]
     paths:
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.env.example'
+      - 'render-env-from-bitwarden.sh'
+      - 'VERSION'
       - 'github/**'
-      - '.github/workflows/publish-github.yml'
+      - 'AzureDevops/**'
+      - 'godot/**'
+      - '.github/workflows/publish-unified.yml'
   release:
     types: [published]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/github-agent
+  IMAGE_NAME: ${{ github.repository }}/dockeragent
 
 jobs:
   build-and-push:
@@ -34,23 +42,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Read version file
+        id: version
+        run: echo "value=$(tr -d '\n\r' < VERSION)" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=${{ steps.version.outputs.value }}
+            type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
-          context: ./github
+          context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -61,7 +74,7 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image-digest: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.meta.outputs.digest }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.value }}
           output-file: sbom.spdx.json
           output-format: spdx-json
 
